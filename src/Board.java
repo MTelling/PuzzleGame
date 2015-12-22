@@ -21,13 +21,14 @@ public class Board {
 		try {
 			this.loadMap(mapName);
 		} catch (IOException e) {
-			System.out.println("The map couldn't be loaded. Trying simplePuzzle instead.");
-			this.loadMap("simplePuzzle.txt");
+			System.out.println("The map couldn't be loaded.");
+			e.printStackTrace();
 		}
 		
 	}
 	
-	public void calculateRoute(int direction) {
+	public boolean calculateRoute(int direction) {
+		Point tryMove = new Point(this.userPosition.x, this.userPosition.y);
 		int horizontal = 0, vertical = 0;
 		
 		switch (direction) {
@@ -44,17 +45,24 @@ public class Board {
 		do {
 			
 			//if the next move will put it out of bounds, don't try to make it. 
-			if ((this.userPosition.x == 0 && horizontal == -1) || (this.userPosition.x == this.boardSize - 1 && horizontal == 1)) {
+			if ((tryMove.x == 0 && horizontal == -1) || (tryMove.x == this.boardSize - 1 && horizontal == 1)) {
 				outOfBounds = true;
-			} else if ((this.userPosition.y == 0 && vertical == -1) || (this.userPosition.y == this.boardSize - 1 && vertical == 1)) {
+			} else if ((tryMove.y == 0 && vertical == -1) || (tryMove.y == this.boardSize - 1 && vertical == 1)) {
 				outOfBounds = true;
 			} else {
-				this.userPosition.translate(horizontal, vertical);
+				tryMove.translate(horizontal, vertical);
 			}
 			
-		} while(!this.blocks.contains(this.userPosition) && !outOfBounds);
+		} while(!this.blocks.contains(tryMove) && !outOfBounds);
 		
-		this.blockTouched(this.userPosition.x, this.userPosition.y);
+		if (!outOfBounds) {
+			this.blockTouched(tryMove.x, tryMove.y);
+			this.userPosition = new Point(tryMove.x, tryMove.y);
+			return true;
+		} else {
+			return false;
+		}
+		
 	}
 	
 	

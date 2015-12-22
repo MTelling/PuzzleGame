@@ -2,6 +2,7 @@ import java.awt.Point;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javafx.animation.FillTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.event.EventHandler;
@@ -44,7 +45,7 @@ public class PuzzleDriver extends Application{
 	public static Board board;
 	public static Circle player;
 	public static GraphicsContext boardGC;
-	public static final String[] levelList = {"winTest.txt", "simplePuzzle.txt", "puzzle1.txt", "insane.txt"};
+	public static final String[] levelList = {"winTest.txt", "simplePuzzle.txt", "puzzle1.txt", "insane.txt", "puzzle5.txt", "puzzle6.txt"};
 	public static int currentLevel = 2;
 	
 	
@@ -180,9 +181,14 @@ public class PuzzleDriver extends Application{
 		Point oldUserPosition = new Point(board.getUserPosition().x, board.getUserPosition().y);
 		
 		//The board model takes care of getting the next position for the player. 
-		board.calculateRoute(direction);
-		
-		movePlayer(oldUserPosition);
+		if (board.calculateRoute(direction)) {
+			movePlayer(oldUserPosition);
+		} else { //No move has been made. Flash red to tell the move is invalid. 
+			FillTransition flash = new FillTransition(new Duration(300), player, playerColor, Color.RED);
+			flash.setCycleCount(2);
+			flash.setAutoReverse(true);
+			flash.play();
+		}
 		
 		
 		//reset direction. 
@@ -255,20 +261,26 @@ public class PuzzleDriver extends Application{
 
 			@Override
 			public void handle(MouseEvent event) {
-				try 
-				{
-					Point oldPosition = new Point(board.getUserPosition().x, board.getUserPosition().y);
-					board = new Board(levelList[currentLevel]);
-					loadBoard();
-					movePlayer(oldPosition);
-					root.getChildren().remove(won);
-					
-					//removes topmost panel
-					resetPanels();					
-					
-				} catch (IOException e) {
-					System.out.println("Failed during reset");
-					e.printStackTrace();
+				//A bug occurs if the reset is pressed while the player is moving. So don't allow this to happen. 
+				if (!animationInProgress) {
+					try {
+						//Saves the current position to be able to make the transition back to start. 
+						Point oldPosition = new Point(board.getUserPosition().x, board.getUserPosition().y);
+						//Resets board
+						board = new Board(levelList[currentLevel]);
+						loadBoard();
+						movePlayer(oldPosition);
+						
+						//Removes won overlay.
+						root.getChildren().remove(won);
+						
+						//removes topmost panel
+						resetPanels();
+						
+					} catch (IOException e) {
+						System.out.println("Failed during reset");
+						e.printStackTrace();
+					}
 				}
 			}
 			
@@ -279,8 +291,8 @@ public class PuzzleDriver extends Application{
 
 			@Override
 			public void handle(MouseEvent event) {
+				//If there was no levelSelector to remove, then show one. 
 				if (!resetPanels()){
-					//TODO: You can get back to the game if lost, by pressing select level twice. 
 					root.getChildren().add(levelSelector(playerPane));
 				}
 			}
@@ -292,10 +304,9 @@ public class PuzzleDriver extends Application{
 	
 	//Checks if the topmost panel is levelSelector or lostPane. If it is remove it. 
 	public boolean resetPanels() {
-		
-		//TODO: A bug occurs if the game is lost
 		boolean levelSelectorOnTop = false;
-		for (int i = 0; i < root.getChildren().size(); i++) {
+		for (int i = root.getChildren().size() - 1; i >= 0 ; i--) {
+			//The !board.isLost() is to ensure that you can't just make the levelSelector disappear and return to a lost game.
 			if (root.getChildren().get(i).getId() == "levelSelector" && !board.isLost()) {
 				root.getChildren().remove(i);
 				levelSelectorOnTop = true;
