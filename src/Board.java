@@ -55,6 +55,7 @@ public class Board {
 			
 		} while(!this.blocks.contains(tryMove) && !outOfBounds);
 		
+		//Make sure that a move will only be made if it is to a block. 
 		if (!outOfBounds) {
 			this.blockTouched(tryMove.x, tryMove.y);
 			this.userPosition = new Point(tryMove.x, tryMove.y);

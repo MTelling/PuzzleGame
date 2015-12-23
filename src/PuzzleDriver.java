@@ -41,10 +41,8 @@ public class PuzzleDriver extends Application{
 	public static int direction = -1;
 	public static boolean animationInProgress = false;
 	public static Group root;
-	public static StackPane won;
 	public static Board board;
 	public static Circle player;
-	public static GraphicsContext boardGC;
 	public static final String[] levelList = {"winTest.txt", "simplePuzzle.txt", "puzzle1.txt", "insane.txt", "puzzle5.txt", "puzzle6.txt"};
 	public static int currentLevel = 2;
 	
@@ -57,7 +55,14 @@ public class PuzzleDriver extends Application{
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		primaryStage.setTitle("PuzzleGame");
-
+		
+		//TODO: Add score
+		//TODO: Add highscore
+		//TODO: Add more maps
+		//TODO: Make mapMaker
+		//TODO: Make the blocks gradually fade into the marked color. Can be done with a javafx timer. 
+		//TODO: Change all styling to CSS
+		//TODO: Find out how to avoid having so many public javaFX units. 
 		
 		//Init layers
 		root = new Group();
@@ -66,40 +71,20 @@ public class PuzzleDriver extends Application{
 		boardCanvas.setLayoutY(40);
 		playerPane.setLayoutY(40);
 		
-		//Init graphics
-		boardGC = boardCanvas.getGraphicsContext2D();
+		//Init graphics, player and board
+		GraphicsContext boardGC = boardCanvas.getGraphicsContext2D();
 		player = new Circle();
-
-		//Init board and player
 		board = new Board(levelList[2]);
-		loadBoard();
+		loadBoard(boardGC);
 		
 		//Init controls
-		Pane controls = controls(playerPane);
+		Pane controls = controls(playerPane, boardGC);
 		
 		//Add canvas and player to group and show stage
 		playerPane.getChildren().add(player);
 		root.getChildren().addAll(boardCanvas, playerPane, controls);
 		Scene scene = new Scene(root);
 		primaryStage.setScene(scene);
-		
-		
-		//TODO: Make this into a method.
-		//Winning pane
-		won = new StackPane();
-		won.setStyle("-fx-background-color: rgba(100, 100, 100, 0.8); -fx-background-radius: 10;");
-		won.setPrefSize(canvasSize - canvasSize/10, canvasSize - canvasSize/10);
-		won.setLayoutX(canvasSize/20);
-		won.setLayoutY(canvasSize/20 + canvasSize/30);
-		
-		Label wonLabel = new Label("You have won!");
-		wonLabel.setStyle("-fx-text-fill: whitesmoke; -fx-font-style: italic; -fx-font-weight: bold; -fx-padding: 0 0 20 0;");
-		wonLabel.setFont(new Font(canvasSize/12));
-		DropShadow labelShadow = new DropShadow(canvasSize/50, Color.WHITESMOKE);
-		wonLabel.setEffect(labelShadow);
-		won.getChildren().add(wonLabel);
-		
-		
 		
 		//Add event handler for scene. This listens for keyboard and decides which way to move. 
 		scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
@@ -114,12 +99,22 @@ public class PuzzleDriver extends Application{
 				default: break;
 				}
 				if (!animationInProgress && direction != -1 && !board.isWon() && !board.isLost()) {
-					movePlayer();
+					movePlayer(boardGC);
+					
+					//Remove the intro. 
+					for (int i = root.getChildren().size() - 1; i >= 0 ; i--) {
+						if (root.getChildren().get(i).getId() == "introPane") {
+							root.getChildren().remove(i);
+						}
+					}
 				}
 				
 			}
 			
 		});
+		
+		//add intro. 
+		root.getChildren().add(intro());
 		
 		primaryStage.setResizable(false);
 		primaryStage.setMaxHeight(canvasSize+500);
@@ -129,11 +124,11 @@ public class PuzzleDriver extends Application{
 		
 	}
 	
-	public void loadBoard() {
+	public void loadBoard(GraphicsContext gc) {
 		fieldSize = canvasSize / board.getSize();
 		moveSpeed = 1500 / board.getSize();
 		//Load board
-		drawBoard();
+		drawBoard(gc);
 		
 		//Draw player at position
 		player.setRadius((fieldSize-(fieldSize/12))/2);
@@ -146,27 +141,27 @@ public class PuzzleDriver extends Application{
 		player.setEffect(playerShadow);
 	}
 	
-	public void drawBoard() {
-		boardGC.setStroke(Color.DARKSLATEGRAY);
+	public void drawBoard(GraphicsContext gc) {
+		gc.setStroke(Color.DARKSLATEGRAY);
 		
 		for (int x = 0; x < board.getSize(); x++) {
 			for (int y = 0; y < board.getSize(); y++) {
 				
 				//Set the drawing color depending on if it's a stone or normal field. 
 				if (board.getData()[x][y] == 'X') {
-					boardGC.setFill(stoneColor);
+					gc.setFill(stoneColor);
 				} else if (board.getData()[x][y] == 'M') {
-					boardGC.setFill(touchedColor);
+					gc.setFill(touchedColor);
 				} else if (board.getData()[x][y] == 'E') {
-					boardGC.setFill(endColor);
+					gc.setFill(endColor);
 				} else {
-					boardGC.setFill(boardColor);
+					gc.setFill(boardColor);
 				}
 				
 								
 				//Draw rectangle and borders.
-				boardGC.strokeRect(x*fieldSize, y*fieldSize, fieldSize, fieldSize);
-				boardGC.fillRect(x*fieldSize, y*fieldSize, fieldSize, fieldSize);
+				gc.strokeRect(x*fieldSize, y*fieldSize, fieldSize, fieldSize);
+				gc.fillRect(x*fieldSize, y*fieldSize, fieldSize, fieldSize);
 				
 			}
 		}
@@ -176,15 +171,14 @@ public class PuzzleDriver extends Application{
 		}
 	}
 	
-	
-	public void movePlayer() {		
+	public void movePlayer(GraphicsContext boardGC) {		
 		Point oldUserPosition = new Point(board.getUserPosition().x, board.getUserPosition().y);
 		
 		//The board model takes care of getting the next position for the player. 
 		if (board.calculateRoute(direction)) {
-			movePlayer(oldUserPosition);
+			movePlayer(oldUserPosition, boardGC);
 		} else { //No move has been made. Flash red to tell the move is invalid. 
-			FillTransition flash = new FillTransition(new Duration(300), player, playerColor, Color.RED);
+			FillTransition flash = new FillTransition(new Duration(300), player, playerColor, Color.rgb(255, 50, 50));
 			flash.setCycleCount(2);
 			flash.setAutoReverse(true);
 			flash.play();
@@ -196,7 +190,7 @@ public class PuzzleDriver extends Application{
 		
 	}
 	
-	public void movePlayer(Point oldPosition) {
+	public void movePlayer(Point oldPosition, GraphicsContext boardGC) {
 		animationInProgress = true;
 		//This moves the player from last position to the new.
 		TranslateTransition playerMove = new TranslateTransition(Duration.millis(
@@ -208,9 +202,9 @@ public class PuzzleDriver extends Application{
 		//Make sure the destination field isn't marked before animation is finished.
 		//Make sure that no other keyevents are handled before animation is finished. 
 		playerMove.setOnFinished(e -> {
-			drawBoard();
+			drawBoard(boardGC);
 			if (board.isWon()) {
-				root.getChildren().add(won);
+				root.getChildren().add(won());
 			} else if (board.isLost()) {
 				root.getChildren().add(lost());
 			}
@@ -238,7 +232,39 @@ public class PuzzleDriver extends Application{
 		return lost;
 	}
 	
-	public FlowPane controls(Pane playerPane) {
+	public StackPane intro() {
+		StackPane intro = new StackPane();
+		intro.setId("introPane");
+		intro.setStyle("-fx-background-color: rgba(100, 100, 100, 0.8); -fx-background-radius: 10;");
+		intro.setPrefSize(canvasSize - canvasSize/10, canvasSize - canvasSize/10);
+		intro.setLayoutX(canvasSize/20);
+		intro.setLayoutY(canvasSize/20 + canvasSize/30);
+		
+		Label introLabel = new Label("Rules:\n"
+				+ "You can move left, right, up and down with the arrow buttons.\n"
+				+ "You have to visit all stones, but you can only stay at a stone\n"
+				+ "once. Second time you visit the stone you will just pass over.\n"
+				+ "If there is a red stone, you have to end there.\n"
+				+ "Good luck!");
+		introLabel.setStyle(("-fx-text-fill: whitesmoke; -fx-font-style: italic; -fx-font-weight: bold; -fx-padding: 0 0 20 0;"));
+		introLabel.setFont(new Font(18));
+		intro.getChildren().add(introLabel);
+		
+		intro.setOnMouseClicked(new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+				root.getChildren().remove(event.getSource());
+			}
+			
+		});
+
+		
+		return intro;
+	}
+	
+	
+	public FlowPane controls(Pane playerPane, GraphicsContext boardGC) {
 		//TODO: Comment in this.
 		FlowPane controls = new FlowPane();
 		controls.setPadding(new Insets(5,5,5,5));
@@ -268,11 +294,11 @@ public class PuzzleDriver extends Application{
 						Point oldPosition = new Point(board.getUserPosition().x, board.getUserPosition().y);
 						//Resets board
 						board = new Board(levelList[currentLevel]);
-						loadBoard();
-						movePlayer(oldPosition);
+						loadBoard(boardGC);
+						movePlayer(oldPosition, boardGC);
 						
 						//Removes won overlay.
-						root.getChildren().remove(won);
+						root.getChildren().remove("won");
 						
 						//removes topmost panel
 						resetPanels();
@@ -293,7 +319,7 @@ public class PuzzleDriver extends Application{
 			public void handle(MouseEvent event) {
 				//If there was no levelSelector to remove, then show one. 
 				if (!resetPanels()){
-					root.getChildren().add(levelSelector(playerPane));
+					root.getChildren().add(levelSelector(playerPane, boardGC));
 				}
 			}
 			
@@ -310,7 +336,9 @@ public class PuzzleDriver extends Application{
 			if (root.getChildren().get(i).getId() == "levelSelector" && !board.isLost()) {
 				root.getChildren().remove(i);
 				levelSelectorOnTop = true;
-			}	else if (root.getChildren().get(i).getId() == "lostPane") {
+			} else if (root.getChildren().get(i).getId() == "lostPane") {
+				root.getChildren().remove(i);
+			} else if (root.getChildren().get(i).getId() == "won") {
 				root.getChildren().remove(i);
 			}
 		}
@@ -319,7 +347,7 @@ public class PuzzleDriver extends Application{
 		
 	}
 	
-	public FlowPane levelSelector(Pane playerPane) {
+	public FlowPane levelSelector(Pane playerPane, GraphicsContext boardGC) {
 		
 		FlowPane levelSelector = new FlowPane();
 		levelSelector.setId("levelSelector");
@@ -335,8 +363,15 @@ public class PuzzleDriver extends Application{
 	    ArrayList<StackPane> levels = new ArrayList<>();
 	    for (int i = 0; i < levelList.length; i++) {
 	    	levels.add(new StackPane());
+	    	levels.get(i).setId(""+i);
 	    	levels.get(i).setPrefSize(144, 144);
-	    	levels.get(i).setStyle("-fx-background-color: white; -fx-background-radius: 10px;");
+	    	//Marks the level that is currently being played with lightgrey. 
+	    	if (i == currentLevel) {
+	    		levels.get(i).setStyle("-fx-background-color: lightgrey; -fx-background-radius: 10px;");
+	    	} else {
+	    		levels.get(i).setStyle("-fx-background-color: white; -fx-background-radius: 10px;");
+	    	}
+	    	
 	    	
 	    	
 	    	//Set what to do when mouse enters. 
@@ -345,8 +380,11 @@ public class PuzzleDriver extends Application{
 				@Override
 				public void handle(MouseEvent event) {
 					StackPane pane = (StackPane) event.getSource();
-					pane.setStyle("-fx-background-color: grey; -fx-background-radius: 10px;");
-			        root.setCursor(Cursor.HAND); //Change cursor to hand
+					//Nothing should happen to the current level pane. 
+					if (!pane.getId().equals(""+currentLevel)){
+						pane.setStyle("-fx-background-color: grey; -fx-background-radius: 10px;");
+			        	root.setCursor(Cursor.HAND); //Change cursor to hand
+					}
 				}
 	    		
 			});
@@ -357,9 +395,11 @@ public class PuzzleDriver extends Application{
 				@Override
 				public void handle(MouseEvent event) {
 					StackPane pane = (StackPane) event.getSource();
-					pane.setStyle("-fx-background-color: white; -fx-background-radius: 10px;");
-			        root.setCursor(Cursor.DEFAULT); //Change cursor to default
-
+					//Nothing should happen to the current level pane. 
+					if (!pane.getId().equals(""+currentLevel)){
+						pane.setStyle("-fx-background-color: white; -fx-background-radius: 10px;");
+			        	root.setCursor(Cursor.DEFAULT); //Change cursor to default
+					}
 				}
 	    		
 	    	});
@@ -370,9 +410,12 @@ public class PuzzleDriver extends Application{
 				@Override
 				public void handle(MouseEvent event) {
 					StackPane pane = (StackPane) event.getSource();
-					int index = levelSelector.getChildren().indexOf(pane);
-					System.out.println("New level selected: " + index);
-					changeLevel(playerPane, index);
+					//Nothing should happen to the current level pane. 
+					if (!pane.getId().equals(""+currentLevel)){
+						int index = levelSelector.getChildren().indexOf(pane);
+						System.out.println("New level selected: " + index);
+						changeLevel(playerPane, index, boardGC);
+					}
 				}
 	    		
 	    	});
@@ -387,8 +430,26 @@ public class PuzzleDriver extends Application{
 	    
 		return levelSelector;
 	}
+
+	public StackPane won() {
+		StackPane won = new StackPane();
+		won.setStyle("-fx-background-color: rgba(100, 100, 100, 0.8); -fx-background-radius: 10;");
+		won.setPrefSize(canvasSize - canvasSize/10, canvasSize - canvasSize/10);
+		won.setLayoutX(canvasSize/20);
+		won.setLayoutY(canvasSize/20 + canvasSize/30);
+		won.setId("won");
+		
+		Label wonLabel = new Label("You have won!");
+		wonLabel.setStyle("-fx-text-fill: whitesmoke; -fx-font-style: italic; -fx-font-weight: bold; -fx-padding: 0 0 20 0;");
+		wonLabel.setFont(new Font(canvasSize/12));
+		DropShadow labelShadow = new DropShadow(canvasSize/50, Color.WHITESMOKE);
+		wonLabel.setEffect(labelShadow);
+		won.getChildren().add(wonLabel);
+		
+		return won;
+	}
 	
-	public void changeLevel(Pane playerPane, int levelNumber){
+	public void changeLevel(Pane playerPane, int levelNumber, GraphicsContext boardGC){
 		try {
 			board = new Board(levelList[levelNumber]);
 		} catch (IOException e) {
@@ -397,21 +458,20 @@ public class PuzzleDriver extends Application{
 		}
 		currentLevel = levelNumber;
 		
-		//In order to be able to reset, the player must be removed entirely then recreated. 
+		//In order to be able to change level, the player must be removed entirely then recreated. 
+		//Other wise there will be problems with the resizing and transition animation. 
 		playerPane.getChildren().remove(0);
 		player = new Circle();
 		playerPane.getChildren().add(player);
 		
 		//Load the new
-		loadBoard();
+		loadBoard(boardGC);
 		
 		//Remove the latest element which should be the levelSelector. 
 		root.getChildren().remove(root.getChildren().size() - 1);
 		
-		//If the game is won the "won" pane should be removed. 
-		if (root.getChildren().contains(won)) {
-			root.getChildren().remove(won);
-		}
+		//If the game is won the "won" pane should be removed.
+		resetPanels();
 	}
 
 }
