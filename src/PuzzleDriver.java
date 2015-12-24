@@ -43,7 +43,7 @@ public class PuzzleDriver extends Application{
 	public static Group root;
 	public static Board board;
 	public static Circle player;
-	public static final String[] levelList = {"winTest.txt", "simplePuzzle.txt", "puzzle1.txt", "insane.txt", "puzzle5.txt", "puzzle6.txt"};
+	public static final String[] levelList = {"winTest.txt", "simplePuzzle.txt", "puzzle.txt", "insane.txt", "puzzle5.txt", "puzzle6.txt"};
 	public static int currentLevel = 2;
 	
 	
@@ -114,7 +114,18 @@ public class PuzzleDriver extends Application{
 		});
 		
 		//add intro. 
-		root.getChildren().add(intro());
+		root.getChildren().add(new AttentionPane(
+				"Rules:\n"
+				+ "You can move left, right, up and down with the arrow buttons.\n"
+				+ "You have to visit all stones, but you can only stay at a stone\n"
+				+ "once. Second time you visit the stone you will just pass over.\n"
+				+ "If there is a red stone, you have to end there.\n"
+				+ "Good luck!",
+				"introPane",
+				20, //font size 20
+				0, //No shadow
+				true //Closeable
+				));
 		
 		primaryStage.setResizable(false);
 		primaryStage.setMaxHeight(canvasSize+500);
@@ -204,63 +215,14 @@ public class PuzzleDriver extends Application{
 		playerMove.setOnFinished(e -> {
 			drawBoard(boardGC);
 			if (board.isWon()) {
-				root.getChildren().add(won());
+				AttentionPane won = new AttentionPane("You have won!", "won", 66, 16, false);
+				root.getChildren().add(won);
 			} else if (board.isLost()) {
-				root.getChildren().add(lost());
+				root.getChildren().add(new AttentionPane("You have to end on that block!", "lostPane", 40, 5, false));
 			}
 			animationInProgress = false;
 		});
 		playerMove.play();
-	}
-	
-	public StackPane lost() {
-		
-		StackPane lost = new StackPane();
-		lost.setId("lostPane");
-		lost.setStyle("-fx-background-color: rgba(100, 100, 100, 0.8); -fx-background-radius: 10;");
-		lost.setPrefSize(canvasSize - canvasSize/10, canvasSize - canvasSize/10);
-		lost.setLayoutX(canvasSize/20);
-		lost.setLayoutY(canvasSize/20 + canvasSize/30);
-		
-		Label lostLabel = new Label("You have to end on that block!");
-		lostLabel.setStyle("-fx-text-fill: whitesmoke; -fx-font-style: italic; -fx-font-weight: bold; -fx-padding: 0 0 20 0;");
-		lostLabel.setFont(new Font(canvasSize/20));
-		DropShadow labelShadow = new DropShadow(canvasSize/50, Color.WHITESMOKE);
-		lostLabel.setEffect(labelShadow);
-		lost.getChildren().add(lostLabel);
-		
-		return lost;
-	}
-	
-	public StackPane intro() {
-		StackPane intro = new StackPane();
-		intro.setId("introPane");
-		intro.setStyle("-fx-background-color: rgba(100, 100, 100, 0.8); -fx-background-radius: 10;");
-		intro.setPrefSize(canvasSize - canvasSize/10, canvasSize - canvasSize/10);
-		intro.setLayoutX(canvasSize/20);
-		intro.setLayoutY(canvasSize/20 + canvasSize/30);
-		
-		Label introLabel = new Label("Rules:\n"
-				+ "You can move left, right, up and down with the arrow buttons.\n"
-				+ "You have to visit all stones, but you can only stay at a stone\n"
-				+ "once. Second time you visit the stone you will just pass over.\n"
-				+ "If there is a red stone, you have to end there.\n"
-				+ "Good luck!");
-		introLabel.setStyle(("-fx-text-fill: whitesmoke; -fx-font-style: italic; -fx-font-weight: bold; -fx-padding: 0 0 20 0;"));
-		introLabel.setFont(new Font(18));
-		intro.getChildren().add(introLabel);
-		
-		intro.setOnMouseClicked(new EventHandler<MouseEvent>() {
-
-			@Override
-			public void handle(MouseEvent event) {
-				root.getChildren().remove(event.getSource());
-			}
-			
-		});
-
-		
-		return intro;
 	}
 	
 	
@@ -298,7 +260,8 @@ public class PuzzleDriver extends Application{
 						movePlayer(oldPosition, boardGC);
 						
 						//Removes won overlay.
-						root.getChildren().remove("won");
+						
+						System.out.println(root.getChildren());
 						
 						//removes topmost panel
 						resetPanels();
@@ -431,23 +394,6 @@ public class PuzzleDriver extends Application{
 		return levelSelector;
 	}
 
-	public StackPane won() {
-		StackPane won = new StackPane();
-		won.setStyle("-fx-background-color: rgba(100, 100, 100, 0.8); -fx-background-radius: 10;");
-		won.setPrefSize(canvasSize - canvasSize/10, canvasSize - canvasSize/10);
-		won.setLayoutX(canvasSize/20);
-		won.setLayoutY(canvasSize/20 + canvasSize/30);
-		won.setId("won");
-		
-		Label wonLabel = new Label("You have won!");
-		wonLabel.setStyle("-fx-text-fill: whitesmoke; -fx-font-style: italic; -fx-font-weight: bold; -fx-padding: 0 0 20 0;");
-		wonLabel.setFont(new Font(canvasSize/12));
-		DropShadow labelShadow = new DropShadow(canvasSize/50, Color.WHITESMOKE);
-		wonLabel.setEffect(labelShadow);
-		won.getChildren().add(wonLabel);
-		
-		return won;
-	}
 	
 	public void changeLevel(Pane playerPane, int levelNumber, GraphicsContext boardGC){
 		try {
