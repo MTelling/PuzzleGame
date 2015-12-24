@@ -43,7 +43,7 @@ public class PuzzleDriver extends Application{
 	public static Group root;
 	public static Board board;
 	public static Circle player;
-	public static final String[] levelList = {"winTest.txt", "simplePuzzle.txt", "puzzle.txt", "insane.txt", "puzzle5.txt", "puzzle6.txt"};
+	public static final String[] levelList = {"winTest.txt", "simplePuzzle.txt", "puzzle1.txt", "insane.txt", "puzzle5.txt", "puzzle6.txt"};
 	public static int currentLevel = 2;
 	
 	
