@@ -1,7 +1,10 @@
 import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+
 import javafx.animation.FillTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
@@ -40,7 +43,7 @@ public class PuzzleDriver extends Application{
 	public static final Color TOUCHED_COLOR = Color.DARKGREEN;
 	public static final Color PLAYER_COLOR = Color.DARKCYAN;
 	public static final Color END_COLOR = Color.DARKRED;
-	public static final String[] levelList = {"winTest.txt", "simplePuzzle.txt", "puzzle1.txt", "insane.txt", "puzzle5.txt", "puzzle6.txt"};
+	public static ArrayList<String> levelList;
 	public static int fieldSize;
 	public static int moveSpeed; //Lower is faster
 	public static direction moveWay = direction.NONE;
@@ -48,7 +51,7 @@ public class PuzzleDriver extends Application{
 	public static Group root;
 	public static Board board;
 	public static Circle player;
-	public static int currentLevel = 2;
+	public static int currentLevel = 0;
 	
 	
 	
@@ -68,8 +71,11 @@ public class PuzzleDriver extends Application{
 		//TODO: Change all styling to CSS
 		//TODO: Find out how to avoid having so many public javaFX units. 
 		//TODO: Change board to panes
-		//TODO: Get all maps automatically
 		//TDOO: Reset when enter is pressed. 
+				
+		
+		//Load maps.
+		levelList = getMapList("");
 		
 		//Init layers
 		root = new Group();
@@ -81,7 +87,7 @@ public class PuzzleDriver extends Application{
 		//Init graphics, player and board
 		GraphicsContext boardGC = boardCanvas.getGraphicsContext2D();
 		player = new Circle();
-		board = new Board(levelList[2]);
+		board = new Board(levelList.get(currentLevel));
 		loadBoard(boardGC);
 		
 		//Init controls
@@ -293,7 +299,7 @@ public class PuzzleDriver extends Application{
 				//Saves the current position to be able to make the transition back to start. 
 				Point currentPosition = new Point(board.getUserPosition().x, board.getUserPosition().y);
 				//Resets board
-				board = new Board(levelList[currentLevel]);
+				board = new Board(levelList.get(currentLevel));
 				loadBoard(boardGC);
 				
 				//Moves player to the startposition from the current position
@@ -344,7 +350,7 @@ public class PuzzleDriver extends Application{
 	    levelSelector.setStyle("-fx-background-color: DAE6F3; -fx-background-radius: 10px;");
 	    
 	    ArrayList<StackPane> levels = new ArrayList<>();
-	    for (int i = 0; i < levelList.length; i++) {
+	    for (int i = 0; i < levelList.size(); i++) {
 	    	levels.add(new StackPane());
 	    	levels.get(i).setId(""+i);
 	    	levels.get(i).setPrefSize(144, 144);
@@ -417,7 +423,7 @@ public class PuzzleDriver extends Application{
 	
 	public void changeLevel(Pane playerPane, int levelNumber, GraphicsContext boardGC){
 		try {
-			board = new Board(levelList[levelNumber]);
+			board = new Board(levelList.get(levelNumber));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -438,6 +444,29 @@ public class PuzzleDriver extends Application{
 		
 		//If the game is won the "won" pane should be removed.
 		resetPanels();
+	}
+	
+	
+	//Gets all textfiles in directory and return path to them as arrayList. 
+	private static ArrayList<String> getMapList(String directory) {
+		ArrayList<String> mapList = new ArrayList<>();
+		try {
+			Files.walk(Paths.get("" + directory)).forEach(filePath -> {
+			    if (Files.isRegularFile(filePath)) {
+			    	String str = ""+filePath;
+			        if (str.endsWith(".txt")) {
+			        	mapList.add(str);
+			        }
+
+			    }
+			});
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println("Couldn't get mapList");
+			e.printStackTrace();
+		}
+		
+		return mapList;
 	}
 
 }
