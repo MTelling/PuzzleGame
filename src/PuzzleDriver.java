@@ -2,7 +2,6 @@ import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-
 import javafx.animation.FillTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
@@ -35,20 +34,20 @@ public class PuzzleDriver extends Application{
 		UP, DOWN, RIGHT, LEFT, NONE;
 	}
 	
-	public static final int canvasSize = 800;
+	public static final int CANVAS_SIZE = 800;
+	public static final Color BOARD_COLOR = Color.DARKSEAGREEN;
+	public static final Color STONE_COLOR = Color.DODGERBLUE;
+	public static final Color TOUCHED_COLOR = Color.DARKGREEN;
+	public static final Color PLAYER_COLOR = Color.DARKCYAN;
+	public static final Color END_COLOR = Color.DARKRED;
+	public static final String[] levelList = {"winTest.txt", "simplePuzzle.txt", "puzzle1.txt", "insane.txt", "puzzle5.txt", "puzzle6.txt"};
 	public static int fieldSize;
-	public static final Color boardColor = Color.DARKSEAGREEN;
-	public static final Color stoneColor = Color.DODGERBLUE;
-	public static final Color touchedColor = Color.DARKGREEN;
-	public static final Color playerColor = Color.DARKCYAN;
-	public static final Color endColor = Color.DARKRED;
 	public static int moveSpeed; //Lower is faster
 	public static direction moveWay = direction.NONE;
 	public static boolean animationInProgress = false;
 	public static Group root;
 	public static Board board;
 	public static Circle player;
-	public static final String[] levelList = {"winTest.txt", "simplePuzzle.txt", "puzzle1.txt", "insane.txt", "puzzle5.txt", "puzzle6.txt"};
 	public static int currentLevel = 2;
 	
 	
@@ -71,7 +70,7 @@ public class PuzzleDriver extends Application{
 		
 		//Init layers
 		root = new Group();
-		Canvas boardCanvas = new Canvas(canvasSize, canvasSize);
+		Canvas boardCanvas = new Canvas(CANVAS_SIZE, CANVAS_SIZE);
 		Pane playerPane = new Pane();
 		boardCanvas.setLayoutY(40);
 		playerPane.setLayoutY(40);
@@ -138,22 +137,22 @@ public class PuzzleDriver extends Application{
 	    scene.getStylesheets().add("file:///" + styleSheet.getAbsolutePath().replace("\\", "/"));
 	    
 		primaryStage.setResizable(false);
-		primaryStage.setMaxHeight(canvasSize+500);
-		primaryStage.setMaxWidth(canvasSize-5);
+		primaryStage.setMaxHeight(CANVAS_SIZE+500);
+		primaryStage.setMaxWidth(CANVAS_SIZE-5);
 		primaryStage.show();
 	
 		
 	}
 	
 	public void loadBoard(GraphicsContext gc) {
-		fieldSize = canvasSize / board.getSize();
+		fieldSize = CANVAS_SIZE / board.getSize();
 		moveSpeed = 1500 / board.getSize();
 		//Load board
 		drawBoard(gc);
 		
 		//Draw player at position
 		player.setRadius((fieldSize-(fieldSize/12))/2);
-		player.setFill(playerColor);
+		player.setFill(PLAYER_COLOR);
 		player.setCenterX(board.getUserPosition().x*fieldSize+(fieldSize/2));
 		player.setCenterY(board.getUserPosition().y*fieldSize+(fieldSize/2));
 		
@@ -170,13 +169,13 @@ public class PuzzleDriver extends Application{
 				
 				//Set the drawing color depending on if it's a stone or normal field. 
 				if (board.getData()[x][y] == 'X') {
-					gc.setFill(stoneColor);
+					gc.setFill(STONE_COLOR);
 				} else if (board.getData()[x][y] == 'M') {
-					gc.setFill(touchedColor);
+					gc.setFill(TOUCHED_COLOR);
 				} else if (board.getData()[x][y] == 'E') {
-					gc.setFill(endColor);
+					gc.setFill(END_COLOR);
 				} else {
-					gc.setFill(boardColor);
+					gc.setFill(BOARD_COLOR);
 				}
 				
 								
@@ -199,7 +198,7 @@ public class PuzzleDriver extends Application{
 		if (board.calculateRoute(moveWay)) {
 			movePlayer(oldUserPosition, boardGC);
 		} else { //No move has been made. Flash red to tell the move is invalid. 
-			FillTransition flash = new FillTransition(new Duration(300), player, playerColor, Color.rgb(255, 50, 50));
+			FillTransition flash = new FillTransition(new Duration(300), player, PLAYER_COLOR, Color.rgb(255, 50, 50));
 			flash.setCycleCount(2);
 			flash.setAutoReverse(true);
 			flash.play();
@@ -243,7 +242,7 @@ public class PuzzleDriver extends Application{
 		controls.setVgap(5);
 		controls.setHgap(10);
 		controls.setStyle("-fx-background-color: #2f4f4f;");
-		controls.setPrefSize(canvasSize, 40);
+		controls.setPrefSize(CANVAS_SIZE, 40);
 		
 		//Add buttons to control panel. 
 		Button resetButton = new Button("Reset");
