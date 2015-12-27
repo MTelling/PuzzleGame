@@ -196,6 +196,8 @@ public class PuzzleDriver extends Application{
 		}
 	}
 	
+	//Moves the player to a new position. This method overloads movePlayer(Point, GraphicsContext).
+	//This is the one that is used if the player just needs to move to new location. 
 	public void movePlayer(GraphicsContext boardGC) {		
 		Point oldUserPosition = new Point(board.getUserPosition().x, board.getUserPosition().y);
 		
@@ -215,6 +217,7 @@ public class PuzzleDriver extends Application{
 		
 	}
 	
+	//Move the player to the new position in the board model from the old position. 
 	public static void movePlayer(Point oldPosition, GraphicsContext boardGC) {
 		animationInProgress = true;
 		//This moves the player from last position to the new.
@@ -288,11 +291,13 @@ public class PuzzleDriver extends Application{
 		if (!animationInProgress) {
 			try {
 				//Saves the current position to be able to make the transition back to start. 
-				Point oldPosition = new Point(board.getUserPosition().x, board.getUserPosition().y);
+				Point currentPosition = new Point(board.getUserPosition().x, board.getUserPosition().y);
 				//Resets board
 				board = new Board(levelList[currentLevel]);
 				loadBoard(boardGC);
-				movePlayer(oldPosition, boardGC);
+				
+				//Moves player to the startposition from the current position
+				movePlayer(currentPosition, boardGC);
 				
 				//removes all panels
 				resetPanels();
