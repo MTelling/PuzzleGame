@@ -30,6 +30,10 @@ import javafx.util.Duration;
 
 public class PuzzleDriver extends Application{
 	
+	public enum direction {
+		UP, DOWN, RIGHT, LEFT, NONE;
+	}
+	
 	public static final int canvasSize = 800;
 	public static int fieldSize;
 	public static final Color boardColor = Color.DARKSEAGREEN;
@@ -38,7 +42,7 @@ public class PuzzleDriver extends Application{
 	public static final Color playerColor = Color.DARKCYAN;
 	public static final Color endColor = Color.DARKRED;
 	public static int moveSpeed; //Lower is faster
-	public static int direction = -1;
+	public static direction moveWay = direction.NONE;
 	public static boolean animationInProgress = false;
 	public static Group root;
 	public static Board board;
@@ -92,13 +96,13 @@ public class PuzzleDriver extends Application{
 			@Override
 			public void handle(KeyEvent event) {
 				switch (event.getCode()) {
-				case UP: direction = 0; break;
-				case DOWN: direction = 1; break;
-				case RIGHT: direction = 2; break;
-				case LEFT: direction = 3; break;
+				case UP: moveWay = direction.UP ; break;
+				case DOWN: moveWay = direction.DOWN ; break;
+				case RIGHT: moveWay = direction.RIGHT; break;
+				case LEFT: moveWay = direction.LEFT; break;
 				default: break;
 				}
-				if (!animationInProgress && direction != -1 && !board.isWon() && !board.isLost()) {
+				if (!animationInProgress && moveWay != direction.NONE && !board.isWon() && !board.isLost()) {
 					movePlayer(boardGC);
 					
 					//Remove the intro. 
@@ -186,7 +190,7 @@ public class PuzzleDriver extends Application{
 		Point oldUserPosition = new Point(board.getUserPosition().x, board.getUserPosition().y);
 		
 		//The board model takes care of getting the next position for the player. 
-		if (board.calculateRoute(direction)) {
+		if (board.calculateRoute(moveWay)) {
 			movePlayer(oldUserPosition, boardGC);
 		} else { //No move has been made. Flash red to tell the move is invalid. 
 			FillTransition flash = new FillTransition(new Duration(300), player, playerColor, Color.rgb(255, 50, 50));
@@ -197,7 +201,7 @@ public class PuzzleDriver extends Application{
 		
 		
 		//reset direction. 
-		direction = -1;
+		moveWay = direction.NONE;
 		
 	}
 	

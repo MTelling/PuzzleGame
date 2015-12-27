@@ -27,15 +27,15 @@ public class Board {
 		
 	}
 	
-	public boolean calculateRoute(int direction) {
+	public boolean calculateRoute(PuzzleDriver.direction moveWay) {
 		Point tryMove = new Point(this.userPosition.x, this.userPosition.y);
 		int horizontal = 0, vertical = 0;
 		
-		switch (direction) {
-		case 0: vertical = -1; break; //Go up
-		case 1: vertical = 1; break; //Go down
-		case 2: horizontal = 1; break; //Go right
-		case 3: horizontal = -1; break; //Go left
+		switch (moveWay) {
+		case UP: vertical = -1; break; //Go up
+		case DOWN: vertical = 1; break; //Go down
+		case RIGHT: horizontal = 1; break; //Go right
+		case LEFT: horizontal = -1; break; //Go left
 		default: break;
 		}
 		
