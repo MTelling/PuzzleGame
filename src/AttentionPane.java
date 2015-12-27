@@ -17,15 +17,14 @@ public class AttentionPane extends StackPane {
 		super();
 		this.setId(id);
 		
-		this.setStyle("-fx-background-color: rgba(100, 100, 100, 0.8); -fx-background-radius: 10;");
 		this.setPrefSize(700, 700);
 		this.setLayoutX(40);
 		this.setLayoutY(66);
 		this.closeable = closeable;
 		
 		Label label = new Label(text);
-		label.setStyle("-fx-text-fill: whitesmoke; -fx-font-style: italic; -fx-font-weight: bold; -fx-padding: 0 0 20 0;");
 		label.setFont(new Font(fontSize));
+		label.setId("attentionPaneLabel");
 		DropShadow labelShadow = new DropShadow(shadowSize, Color.WHITESMOKE);
 		label.setEffect(labelShadow);
 		this.getChildren().add(label);

@@ -1,0 +1,11 @@
+AttentionPane{
+	-fx-background-color: rgba(100, 100, 100, 0.8); 
+	-fx-background-radius: 10;
+}
+
+#attentionPaneLabel{
+	-fx-text-fill: whitesmoke; 
+	-fx-font-style: italic; 
+	-fx-font-weight: bold; 
+	-fx-padding: 0 0 20 0;
+}

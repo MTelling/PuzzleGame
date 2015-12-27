@@ -1,4 +1,5 @@
 import java.awt.Point;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -131,6 +132,11 @@ public class PuzzleDriver extends Application{
 				true //Closeable
 				));
 		
+		//Load stylesheet. 
+	    File styleSheet = new File("stylesheet.css");
+	    scene.getStylesheets().clear();
+	    scene.getStylesheets().add("file:///" + styleSheet.getAbsolutePath().replace("\\", "/"));
+	    
 		primaryStage.setResizable(false);
 		primaryStage.setMaxHeight(canvasSize+500);
 		primaryStage.setMaxWidth(canvasSize-5);
