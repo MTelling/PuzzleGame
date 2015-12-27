@@ -67,6 +67,9 @@ public class PuzzleDriver extends Application{
 		//TODO: Make the blocks gradually fade into the marked color. Can be done with a javafx timer. 
 		//TODO: Change all styling to CSS
 		//TODO: Find out how to avoid having so many public javaFX units. 
+		//TODO: Change board to panes
+		//TODO: Get all maps automatically
+		//TDOO: Reset when enter is pressed. 
 		
 		//Init layers
 		root = new Group();
@@ -100,8 +103,10 @@ public class PuzzleDriver extends Application{
 				case DOWN: moveWay = direction.DOWN ; break;
 				case RIGHT: moveWay = direction.RIGHT; break;
 				case LEFT: moveWay = direction.LEFT; break;
+				case ENTER: resetBoard(boardGC); break;
 				default: break;
 				}
+				
 				if (!animationInProgress && moveWay != direction.NONE && !board.isWon() && !board.isLost()) {
 					movePlayer(boardGC);
 					
@@ -144,7 +149,7 @@ public class PuzzleDriver extends Application{
 		
 	}
 	
-	public void loadBoard(GraphicsContext gc) {
+	public static void loadBoard(GraphicsContext gc) {
 		fieldSize = CANVAS_SIZE / board.getSize();
 		moveSpeed = 1500 / board.getSize();
 		//Load board
@@ -161,7 +166,7 @@ public class PuzzleDriver extends Application{
 		player.setEffect(playerShadow);
 	}
 	
-	public void drawBoard(GraphicsContext gc) {
+	public static void drawBoard(GraphicsContext gc) {
 		gc.setStroke(Color.DARKSLATEGRAY);
 		
 		for (int x = 0; x < board.getSize(); x++) {
@@ -210,7 +215,7 @@ public class PuzzleDriver extends Application{
 		
 	}
 	
-	public void movePlayer(Point oldPosition, GraphicsContext boardGC) {
+	public static void movePlayer(Point oldPosition, GraphicsContext boardGC) {
 		animationInProgress = true;
 		//This moves the player from last position to the new.
 		TranslateTransition playerMove = new TranslateTransition(Duration.millis(
@@ -258,30 +263,8 @@ public class PuzzleDriver extends Application{
 
 			@Override
 			public void handle(MouseEvent event) {
-				//A bug occurs if the reset is pressed while the player is moving. So don't allow this to happen. 
-				if (!animationInProgress) {
-					try {
-						//Saves the current position to be able to make the transition back to start. 
-						Point oldPosition = new Point(board.getUserPosition().x, board.getUserPosition().y);
-						//Resets board
-						board = new Board(levelList[currentLevel]);
-						loadBoard(boardGC);
-						movePlayer(oldPosition, boardGC);
-						
-						//Removes won overlay.
-						
-						System.out.println(root.getChildren());
-						
-						//removes topmost panel
-						resetPanels();
-						
-					} catch (IOException e) {
-						System.out.println("Failed during reset");
-						e.printStackTrace();
-					}
-				}
+				resetBoard(boardGC);
 			}
-			
 		});
 		
 		//Shows and unshows levelSelector. 
@@ -300,8 +283,31 @@ public class PuzzleDriver extends Application{
 		return controls;
 	}
 	
+	public static void resetBoard(GraphicsContext boardGC) {
+		//A bug occurs if the reset is pressed while the player is moving. So don't allow this to happen. 
+		if (!animationInProgress) {
+			try {
+				//Saves the current position to be able to make the transition back to start. 
+				Point oldPosition = new Point(board.getUserPosition().x, board.getUserPosition().y);
+				//Resets board
+				board = new Board(levelList[currentLevel]);
+				loadBoard(boardGC);
+				movePlayer(oldPosition, boardGC);
+				
+				//removes all panels
+				resetPanels();
+				
+			} catch (IOException e) {
+				System.out.println("Failed during reset");
+				e.printStackTrace();
+			}
+		}
+	}
+		
+	
+	
 	//Checks if the topmost panel is levelSelector or lostPane. If it is remove it. 
-	public boolean resetPanels() {
+	public static  boolean resetPanels() {
 		boolean levelSelectorOnTop = false;
 		for (int i = root.getChildren().size() - 1; i >= 0 ; i--) {
 			//The !board.isLost() is to ensure that you can't just make the levelSelector disappear and return to a lost game.
